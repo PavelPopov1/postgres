@@ -1,0 +1,1566 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.21
+-- Dumped by pg_dump version 9.6.21
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: alembic_version; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.alembic_version (
+    version_num character varying(32) NOT NULL
+);
+
+
+ALTER TABLE public.alembic_version OWNER TO airflow;
+
+--
+-- Name: chart; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.chart (
+    id integer NOT NULL,
+    label character varying(200),
+    conn_id character varying(250) NOT NULL,
+    user_id integer,
+    chart_type character varying(100),
+    sql_layout character varying(50),
+    sql text,
+    y_log_scale boolean,
+    show_datatable boolean,
+    show_sql boolean,
+    height integer,
+    default_params character varying(5000),
+    x_is_date boolean,
+    iteration_no integer,
+    last_modified timestamp with time zone
+);
+
+
+ALTER TABLE public.chart OWNER TO airflow;
+
+--
+-- Name: chart_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.chart_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.chart_id_seq OWNER TO airflow;
+
+--
+-- Name: chart_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.chart_id_seq OWNED BY public.chart.id;
+
+
+--
+-- Name: connection; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.connection (
+    id integer NOT NULL,
+    conn_id character varying(250),
+    conn_type character varying(500),
+    host character varying(500),
+    schema character varying(500),
+    login character varying(500),
+    password character varying(5000),
+    port integer,
+    extra character varying(5000),
+    is_encrypted boolean,
+    is_extra_encrypted boolean
+);
+
+
+ALTER TABLE public.connection OWNER TO airflow;
+
+--
+-- Name: connection_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.connection_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.connection_id_seq OWNER TO airflow;
+
+--
+-- Name: connection_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.connection_id_seq OWNED BY public.connection.id;
+
+
+--
+-- Name: dag; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.dag (
+    dag_id character varying(250) NOT NULL,
+    is_paused boolean,
+    is_subdag boolean,
+    is_active boolean,
+    last_scheduler_run timestamp with time zone,
+    last_pickled timestamp with time zone,
+    last_expired timestamp with time zone,
+    scheduler_lock boolean,
+    pickle_id integer,
+    fileloc character varying(2000),
+    owners character varying(2000),
+    description text,
+    default_view character varying(25),
+    schedule_interval text,
+    root_dag_id character varying(250)
+);
+
+
+ALTER TABLE public.dag OWNER TO airflow;
+
+--
+-- Name: dag_pickle; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.dag_pickle (
+    id integer NOT NULL,
+    pickle bytea,
+    created_dttm timestamp with time zone,
+    pickle_hash bigint
+);
+
+
+ALTER TABLE public.dag_pickle OWNER TO airflow;
+
+--
+-- Name: dag_pickle_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.dag_pickle_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.dag_pickle_id_seq OWNER TO airflow;
+
+--
+-- Name: dag_pickle_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.dag_pickle_id_seq OWNED BY public.dag_pickle.id;
+
+
+--
+-- Name: dag_run; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.dag_run (
+    id integer NOT NULL,
+    dag_id character varying(250),
+    execution_date timestamp with time zone,
+    state character varying(50),
+    run_id character varying(250),
+    external_trigger boolean,
+    conf bytea,
+    end_date timestamp with time zone,
+    start_date timestamp with time zone
+);
+
+
+ALTER TABLE public.dag_run OWNER TO airflow;
+
+--
+-- Name: dag_run_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.dag_run_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.dag_run_id_seq OWNER TO airflow;
+
+--
+-- Name: dag_run_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.dag_run_id_seq OWNED BY public.dag_run.id;
+
+
+--
+-- Name: dag_tag; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.dag_tag (
+    name character varying(100) NOT NULL,
+    dag_id character varying(250) NOT NULL
+);
+
+
+ALTER TABLE public.dag_tag OWNER TO airflow;
+
+--
+-- Name: import_error; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.import_error (
+    id integer NOT NULL,
+    "timestamp" timestamp with time zone,
+    filename character varying(1024),
+    stacktrace text
+);
+
+
+ALTER TABLE public.import_error OWNER TO airflow;
+
+--
+-- Name: import_error_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.import_error_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.import_error_id_seq OWNER TO airflow;
+
+--
+-- Name: import_error_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.import_error_id_seq OWNED BY public.import_error.id;
+
+
+--
+-- Name: job; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.job (
+    id integer NOT NULL,
+    dag_id character varying(250),
+    state character varying(20),
+    job_type character varying(30),
+    start_date timestamp with time zone,
+    end_date timestamp with time zone,
+    latest_heartbeat timestamp with time zone,
+    executor_class character varying(500),
+    hostname character varying(500),
+    unixname character varying(1000)
+);
+
+
+ALTER TABLE public.job OWNER TO airflow;
+
+--
+-- Name: job_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.job_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.job_id_seq OWNER TO airflow;
+
+--
+-- Name: job_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.job_id_seq OWNED BY public.job.id;
+
+
+--
+-- Name: known_event; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.known_event (
+    id integer NOT NULL,
+    label character varying(200),
+    start_date timestamp without time zone,
+    end_date timestamp without time zone,
+    user_id integer,
+    known_event_type_id integer,
+    description text
+);
+
+
+ALTER TABLE public.known_event OWNER TO airflow;
+
+--
+-- Name: known_event_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.known_event_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.known_event_id_seq OWNER TO airflow;
+
+--
+-- Name: known_event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.known_event_id_seq OWNED BY public.known_event.id;
+
+
+--
+-- Name: known_event_type; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.known_event_type (
+    id integer NOT NULL,
+    know_event_type character varying(200)
+);
+
+
+ALTER TABLE public.known_event_type OWNER TO airflow;
+
+--
+-- Name: known_event_type_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.known_event_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.known_event_type_id_seq OWNER TO airflow;
+
+--
+-- Name: known_event_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.known_event_type_id_seq OWNED BY public.known_event_type.id;
+
+
+--
+-- Name: kube_resource_version; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.kube_resource_version (
+    one_row_id boolean DEFAULT true NOT NULL,
+    resource_version character varying(255),
+    CONSTRAINT kube_resource_version_one_row_id CHECK (one_row_id)
+);
+
+
+ALTER TABLE public.kube_resource_version OWNER TO airflow;
+
+--
+-- Name: kube_worker_uuid; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.kube_worker_uuid (
+    one_row_id boolean DEFAULT true NOT NULL,
+    worker_uuid character varying(255),
+    CONSTRAINT kube_worker_one_row_id CHECK (one_row_id)
+);
+
+
+ALTER TABLE public.kube_worker_uuid OWNER TO airflow;
+
+--
+-- Name: log; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.log (
+    id integer NOT NULL,
+    dttm timestamp with time zone,
+    dag_id character varying(250),
+    task_id character varying(250),
+    event character varying(30),
+    execution_date timestamp with time zone,
+    owner character varying(500),
+    extra text
+);
+
+
+ALTER TABLE public.log OWNER TO airflow;
+
+--
+-- Name: log_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.log_id_seq OWNER TO airflow;
+
+--
+-- Name: log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.log_id_seq OWNED BY public.log.id;
+
+
+--
+-- Name: serialized_dag; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.serialized_dag (
+    dag_id character varying(250) NOT NULL,
+    fileloc character varying(2000) NOT NULL,
+    fileloc_hash integer NOT NULL,
+    data json NOT NULL,
+    last_updated timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.serialized_dag OWNER TO airflow;
+
+--
+-- Name: sla_miss; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.sla_miss (
+    task_id character varying(250) NOT NULL,
+    dag_id character varying(250) NOT NULL,
+    execution_date timestamp with time zone NOT NULL,
+    email_sent boolean,
+    "timestamp" timestamp with time zone,
+    description text,
+    notification_sent boolean
+);
+
+
+ALTER TABLE public.sla_miss OWNER TO airflow;
+
+--
+-- Name: slot_pool; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.slot_pool (
+    id integer NOT NULL,
+    pool character varying(50),
+    slots integer,
+    description text
+);
+
+
+ALTER TABLE public.slot_pool OWNER TO airflow;
+
+--
+-- Name: slot_pool_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.slot_pool_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.slot_pool_id_seq OWNER TO airflow;
+
+--
+-- Name: slot_pool_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.slot_pool_id_seq OWNED BY public.slot_pool.id;
+
+
+--
+-- Name: task_fail; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.task_fail (
+    id integer NOT NULL,
+    task_id character varying(250) NOT NULL,
+    dag_id character varying(250) NOT NULL,
+    execution_date timestamp with time zone NOT NULL,
+    start_date timestamp with time zone,
+    end_date timestamp with time zone,
+    duration integer
+);
+
+
+ALTER TABLE public.task_fail OWNER TO airflow;
+
+--
+-- Name: task_fail_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.task_fail_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.task_fail_id_seq OWNER TO airflow;
+
+--
+-- Name: task_fail_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.task_fail_id_seq OWNED BY public.task_fail.id;
+
+
+--
+-- Name: task_instance; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.task_instance (
+    task_id character varying(250) NOT NULL,
+    dag_id character varying(250) NOT NULL,
+    execution_date timestamp with time zone NOT NULL,
+    start_date timestamp with time zone,
+    end_date timestamp with time zone,
+    duration double precision,
+    state character varying(20),
+    try_number integer,
+    hostname character varying(1000),
+    unixname character varying(1000),
+    job_id integer,
+    pool character varying(50) NOT NULL,
+    queue character varying(256),
+    priority_weight integer,
+    operator character varying(1000),
+    queued_dttm timestamp with time zone,
+    pid integer,
+    max_tries integer DEFAULT '-1'::integer,
+    executor_config bytea
+);
+
+
+ALTER TABLE public.task_instance OWNER TO airflow;
+
+--
+-- Name: task_reschedule; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.task_reschedule (
+    id integer NOT NULL,
+    task_id character varying(250) NOT NULL,
+    dag_id character varying(250) NOT NULL,
+    execution_date timestamp with time zone NOT NULL,
+    try_number integer NOT NULL,
+    start_date timestamp with time zone NOT NULL,
+    end_date timestamp with time zone NOT NULL,
+    duration integer NOT NULL,
+    reschedule_date timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.task_reschedule OWNER TO airflow;
+
+--
+-- Name: task_reschedule_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.task_reschedule_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.task_reschedule_id_seq OWNER TO airflow;
+
+--
+-- Name: task_reschedule_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.task_reschedule_id_seq OWNED BY public.task_reschedule.id;
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    username character varying(250),
+    email character varying(500),
+    password character varying(255),
+    superuser boolean
+);
+
+
+ALTER TABLE public.users OWNER TO airflow;
+
+--
+-- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_id_seq OWNER TO airflow;
+
+--
+-- Name: user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.user_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: variable; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.variable (
+    id integer NOT NULL,
+    key character varying(250),
+    val text,
+    is_encrypted boolean
+);
+
+
+ALTER TABLE public.variable OWNER TO airflow;
+
+--
+-- Name: variable_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.variable_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.variable_id_seq OWNER TO airflow;
+
+--
+-- Name: variable_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.variable_id_seq OWNED BY public.variable.id;
+
+
+--
+-- Name: xcom; Type: TABLE; Schema: public; Owner: airflow
+--
+
+CREATE TABLE public.xcom (
+    id integer NOT NULL,
+    key character varying(512),
+    value bytea,
+    "timestamp" timestamp with time zone NOT NULL,
+    execution_date timestamp with time zone NOT NULL,
+    task_id character varying(250) NOT NULL,
+    dag_id character varying(250) NOT NULL
+);
+
+
+ALTER TABLE public.xcom OWNER TO airflow;
+
+--
+-- Name: xcom_id_seq; Type: SEQUENCE; Schema: public; Owner: airflow
+--
+
+CREATE SEQUENCE public.xcom_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.xcom_id_seq OWNER TO airflow;
+
+--
+-- Name: xcom_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: airflow
+--
+
+ALTER SEQUENCE public.xcom_id_seq OWNED BY public.xcom.id;
+
+
+--
+-- Name: chart id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.chart ALTER COLUMN id SET DEFAULT nextval('public.chart_id_seq'::regclass);
+
+
+--
+-- Name: connection id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.connection ALTER COLUMN id SET DEFAULT nextval('public.connection_id_seq'::regclass);
+
+
+--
+-- Name: dag_pickle id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag_pickle ALTER COLUMN id SET DEFAULT nextval('public.dag_pickle_id_seq'::regclass);
+
+
+--
+-- Name: dag_run id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag_run ALTER COLUMN id SET DEFAULT nextval('public.dag_run_id_seq'::regclass);
+
+
+--
+-- Name: import_error id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.import_error ALTER COLUMN id SET DEFAULT nextval('public.import_error_id_seq'::regclass);
+
+
+--
+-- Name: job id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.job ALTER COLUMN id SET DEFAULT nextval('public.job_id_seq'::regclass);
+
+
+--
+-- Name: known_event id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.known_event ALTER COLUMN id SET DEFAULT nextval('public.known_event_id_seq'::regclass);
+
+
+--
+-- Name: known_event_type id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.known_event_type ALTER COLUMN id SET DEFAULT nextval('public.known_event_type_id_seq'::regclass);
+
+
+--
+-- Name: log id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.log ALTER COLUMN id SET DEFAULT nextval('public.log_id_seq'::regclass);
+
+
+--
+-- Name: slot_pool id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.slot_pool ALTER COLUMN id SET DEFAULT nextval('public.slot_pool_id_seq'::regclass);
+
+
+--
+-- Name: task_fail id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.task_fail ALTER COLUMN id SET DEFAULT nextval('public.task_fail_id_seq'::regclass);
+
+
+--
+-- Name: task_reschedule id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.task_reschedule ALTER COLUMN id SET DEFAULT nextval('public.task_reschedule_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.user_id_seq'::regclass);
+
+
+--
+-- Name: variable id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.variable ALTER COLUMN id SET DEFAULT nextval('public.variable_id_seq'::regclass);
+
+
+--
+-- Name: xcom id; Type: DEFAULT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.xcom ALTER COLUMN id SET DEFAULT nextval('public.xcom_id_seq'::regclass);
+
+
+--
+-- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.alembic_version (version_num) FROM stdin;
+7939bcff74ba
+\.
+
+
+--
+-- Data for Name: chart; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.chart (id, label, conn_id, user_id, chart_type, sql_layout, sql, y_log_scale, show_datatable, show_sql, height, default_params, x_is_date, iteration_no, last_modified) FROM stdin;
+1	Airflow task instance by type	airflow_db	\N	bar	series	SELECT state, COUNT(1) as number FROM task_instance WHERE dag_id LIKE 'example%' GROUP BY state	\N	\N	t	600	{}	f	0	2021-03-11 21:47:17.803291+00
+\.
+
+
+--
+-- Name: chart_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.chart_id_seq', 1, true);
+
+
+--
+-- Data for Name: connection; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.connection (id, conn_id, conn_type, host, schema, login, password, port, extra, is_encrypted, is_extra_encrypted) FROM stdin;
+1	airflow_db	mysql	mysql	airflow	root	\N	\N	\N	f	f
+2	beeline_default	beeline	localhost	default	\N	\N	10000	gAAAAABgSo_lBdnBrlOC5Dnw1MUhiZ1USNO3tXSy6F9tLj1M5xCLW-PxvsgFBkSQEtPKEZ_U9DcI6RmTX2ugs8r5RjtGOBXXNCS3rxAicTj-OZrm65UW5Dv8gjNICLW6dH79saBZSUQ4	f	t
+3	bigquery_default	google_cloud_platform	\N	default	\N	\N	\N	\N	f	f
+4	local_mysql	mysql	localhost	airflow	airflow	gAAAAABgSo_lD2FBJ1IbNeD2xzf-kI1tnMl3I9eQl6NZpltD_NuKC7Vb-NQKzIdsHCCYN_sTAWtraMU7Gg-92FXX2f2iOEqvZA==	\N	\N	t	f
+5	presto_default	presto	localhost	hive	\N	\N	3400	\N	f	f
+6	google_cloud_default	google_cloud_platform	\N	default	\N	\N	\N	\N	f	f
+7	hive_cli_default	hive_cli	\N	default	\N	\N	\N	\N	f	f
+8	pig_cli_default	pig_cli	\N	default	\N	\N	\N	\N	f	f
+9	hiveserver2_default	hiveserver2	localhost	default	\N	\N	10000	\N	f	f
+10	metastore_default	hive_metastore	localhost	\N	\N	\N	9083	gAAAAABgSo_lAaMsa_Rp5hhSu9UvXCN67MD_gsLR6dAxn8sbSA_O-FeSiiJVvbSN55sqXh7Y4wdpF6dir0-BN2s1uX2ivP6hX4Dni7m24GLTwM1nH86bneM=	f	t
+11	mongo_default	mongo	mongo	\N	\N	\N	27017	\N	f	f
+12	mysql_default	mysql	mysql	airflow	root	\N	\N	\N	f	f
+13	postgres_default	postgres	postgres	airflow	postgres	gAAAAABgSo_lLtI0utKmQHsmXWcriO3-iCNqUm-QIGh6quuPCjFPAE8GGLwUHvtHHp_ZwWYW1gzOAITwYgVEeSwFrcxE7lguNA==	\N	\N	t	f
+14	sqlite_default	sqlite	/tmp/sqlite_default.db	\N	\N	\N	\N	\N	f	f
+15	http_default	http	https://www.httpbin.org/	\N	\N	\N	\N	\N	f	f
+16	mssql_default	mssql	localhost	\N	\N	\N	1433	\N	f	f
+17	vertica_default	vertica	localhost	\N	\N	\N	5433	\N	f	f
+18	wasb_default	wasb	\N	\N	\N	\N	\N	gAAAAABgSo_lzC3YsJTA4bxJaG_uOWYqpr-T_m3FAgyxk9HZdo7EPooDKgLbt6u6VVE699ktl4XE9w_SP2QRbmS7k4i-1XkabQglXHwzmU16VtAeuQtIskI=	f	t
+19	webhdfs_default	hdfs	localhost	\N	\N	\N	50070	\N	f	f
+20	ssh_default	ssh	localhost	\N	\N	\N	\N	\N	f	f
+21	sftp_default	sftp	localhost	\N	airflow	\N	22	gAAAAABgSo_lZqgKltPXjVUhAp7hD2CbfwNqNcYqhTrhG9YzPv3L6rRJq8lCDxrebmOSlRUdWhbDhMmG6DnfuIkpPC2DXBQxKg5NzlhnTS5ykADRUCiA1QBrHWerD1_WfTmtgM3xHV3qOd22IpnBpPHGnrdgkJbBIdP1vfD0N8Udz_7W1Gfmd9L7KFfuDjvyM9e3h8lzfWq1	f	t
+22	fs_default	fs	\N	\N	\N	\N	\N	gAAAAABgSo_lPY1Drx8ZQXo4E7O9mydU65sNP874AxwAlY8DMq0zjjnHY90LlI0vi08i7skIClwHLOaQJMhSWCqXavOjvTyGeA==	f	t
+23	aws_default	aws	\N	\N	\N	\N	\N	\N	f	f
+24	spark_default	spark	yarn	\N	\N	\N	\N	gAAAAABgSo_l_E6oR92aBPA6jo1JkUXOv79BCGzg1rzDx942GnKpKnPOFufryzQLj7HGaGoyerQnI94CYDlkONzrFPL4RSVme0Rh9HBlW6tYPJjAqAjzNgY=	f	t
+25	druid_broker_default	druid	druid-broker	\N	\N	\N	8082	gAAAAABgSo_l5lkOwcZ9pgROqf1E5jDHnCzRqIdAXzGCUfnJ93OOAle97k9aLn41lLF1IxyVfoOCz1_J5Py_wUHFpz38rcroh9z4qyOLiu-TN0bgGNRxM_U=	f	t
+26	druid_ingest_default	druid	druid-overlord	\N	\N	\N	8081	gAAAAABgSo_lmmJy9xIk9Bqr5vx4gVn2ecsrryUtceZHXkosofvsz2YS6yTEIWU75AQTdMeigEx8dE-qTtgEAeZEUiFtLQu6ziSNv8kO2Hg4fhG-IHtneHA3-Qk2E2x2j9iG-xzSThNv	f	t
+27	redis_default	redis	redis	\N	\N	\N	6379	gAAAAABgSo_l8JJe_HpUAYTAEQm32gDkcZkegqCGkHGu7OYbINZULZucUs83z4WDHJByuNSK_OyxX6ko4X_R8PmTKmGITAqw5w==	f	t
+28	sqoop_default	sqoop	rmdbs	\N	\N	\N	\N		f	f
+29	emr_default	emr	\N	\N	\N	\N	\N	gAAAAABgSo_lkh2RE8WNvEO6n6exAgj2Bbh19nqabRDwS6xGm1lEovi1nXR_qQ5hiYoHjNYKiu37t7AKtU1es7XaLqPmP6daqOSjLOBC9hdiYuRD-IedQUsRCufs1i6GSAevPBgZVgReGzhzrvELB6PQwpPOkAVA00vbMneDbp_sLCPO_li7ZPjHJuZornSYyj1ORH-w0CHlvlIyg2pzaCn5DTbv9LZ7FYG7zeu1GkgXl3oU3Qf6e5Ylaogb6M0zIdNJDcjvSBC9JiMgX4m-ovV3r6707_hWNo2MT7opXf_a1apm6YsMuiuS00j6xxYPnVxc5EYVaL8ezmo2EmcKei9xTraPUv3P0lZUrYlYcx7VXLpr7e7W36lRpja5IUBza5KxO-DLLFhDziTKEHT7xt0jrxxoBBZorpqs0y1PWyQKHcVYRN5HIt4NEDAapWQCiv4s5WOyrq743dcYJVlhVCCxH1PwiEH6t8rvrTwTAWxd_p-REm7tKXtvESVpcTiHq6ochLCzAAM1N_6Cct4eUqBM0WM0n1xTladI4AkZFoixI-r4q9AU7NyACDc16dyHL2NrGlnt3ULHJ7dSccKWWZ0mldxYytKKAEd2aRujPdjZcszLCTs_ET5ZDr08FfcEH2uANIa-jrilKJ2B21zgBH81Xxr7QDxwDDTWVUY5h2r-Ki8R-76EjieSNu3Tiw6zE9ydo44QLuaBLhLpJ_Ggap0bOQ0JqjkRpL4V3ttIApkp9CPy_fmFVBCWmGiSPcBJo3ugeSJbCtKt2Q60NoFbvlQwHwxV0Gn8oZ1LlJo2fpCwaj8MHYyVpnvQ4I1TM8x2yyRZlGs-CG2_gDLR60v46K5aGB-okbHnEL5RtBf_FUNa_QDxnC8o_imcZZuCe_5I4hYfrJ79x1vahkrtQLkkPLmRxFCkmf2jaIrenjuGsRTUh4vvpIAxwA-5k_mjtBsinjZ2PXdzNrYRFKFUurUi6oMMGeauX4_kIDJP0RdqmMDZgk_3f2BraV4Bsw_PQUQENEeFtD8SM8DQXzNbShcXNH2FnCnYeap5BFanXz3tFpPWX64N6Qz0lfTpfHJ78_44_if2RfO-XSoeqff4hJxBjvdxpPkC6EQXC8o6huVZOUmoFizfVKVArUI0W3zWIQmLOTWtx5OfoHmFW6WuQ1CF3ytVHbApl8zgz3Gv7FSUNFSTA9ACphTYna4Mx5rUoJzzbxri2gbBzqbSoIqJR6z_-A_X6OdQvTKCZdenJ46GYVSsqkQG_LbnjpQMHNQqHPTvRIvzy09rfxctMuxs3jdO3l5FuVTMHFJwSPx0V5H3VLn7m7MA14QT2kEX7PLdjJ8EBALdIPavUAZcX0S-cdOFXV7lLdpRz4srvK3EYpwxkKkBcruEcOcj-Us9UoLx7HD_YJQEJgM7aJ_wYv77J-m-7VGr9Dd_3hp4HwFpDAqhP57iUTBNhA0QMQMJddqLuYQk4Gm_xe7OundIb3Iu1HxESQZu0oh1aIHMctpl4fII_-V8VzOep75o-IsGrtsEXQRrJPt2vIAz0JXFgsTYDEeeA9mOXtNA5ceKJVEp60Zn99wpeXDE6uCFELJz7bJ5BL2fm54ioYEpyE9iJbLrQ0YH6XC4DYONEKuMJZ0k67f_IsgIem-W6pvq7d-S7-GOemqImvLSys0qupEIRa7LgubPhy6ohIqaZxahRZ4tEr-XpBZd7ZnraDUMdV289CGQg1VsVXBZlwinwfAJTLia426YCap-Eelul4JVBB5P8GNjMdxFNlEeJ27TDXHx9TxkYx6lKSE5p95i9k5Q1PRv5i6wpN99zWW-0lnsfegl9KGY3_IIhnGFdNGCUyrjno8e_9kDOLzqVjtv9eoP-VZnJVYNjArDC07BDQtGJEC3PfC9vjiYsgvLPdqAJzeC1rEITA2w3ifLmQvEmz5qxAypejiITyA01yPX9AnZvuI_lVO2VBVZT94exM78-gykubS0lqnrapMAs0QeqKa0aCGXp3IdVgE7mLMbL42QzvwitmbsTA7s9lJqDSMc-QuZN1uy-UJtY6x61PP3mZT-DncI0LEqFxyYfTvMnXH2JHr6Eet6vnV86T6Emu117mNYwQ7MurFDTLbHBrwNy8TGJRlMc6xaaj9KFbzwHe0X-YENtQB-zD-NxlNJrp16azg-wHfjJAgrMDMCajDqUwxkKDXCho_t9c_P-TO0uUXkW8Wrfpz3eP-WGVrgBLOo02YC2c2XbTuG1iGlqrydIrh0hyQa78SOiia_CShnFTRKuY51ZL2KGre6fniwpm9U2JJ3Pkxn9ZSLEIVtnO3B0T3i_ZvM64ILHDO0ensT22_U5ZnJdEs5CLEJhQFkXddvZyx-FCT8PIXMV4JRKuQ5gbD5l5UOq81ohUKq0NWsq9o10juKf-qJ9DMBdl2v5Heaudytu5GwbzxhlAy3wdT0ljp9gjpvv-KF0zJfQudPcFgKpcCkCfKqsuWSIRty1wLmIbddMTFyrKZ0awEFaoSgbQ6o3G_o-JAdT9n6GxFXVJ1sDinyOzFTL0B6AV1s__zwvrw=	f	t
+30	databricks_default	databricks	localhost	\N	\N	\N	\N	\N	f	f
+31	qubole_default	qubole	localhost	\N	\N	\N	\N	\N	f	f
+32	segment_default	segment	\N	\N	\N	\N	\N	gAAAAABgSo_lH_cv1PK3dlMB2-3aESqmdjwmVmva9KDFtNPVL9opuXgTt-D92b7zIahQZqiETcPm-bk7zZpCoFqS5RnZGVPB7bKKfcJSDPPoT-YvbeCaXDqGnfKZkHjwzwxbYn5tX2e9	f	t
+33	azure_data_lake_default	azure_data_lake	\N	\N	\N	\N	\N	gAAAAABgSo_lH2WZTwKPQyAj1zOnicuzKFmMgTm2xlGV57JKoxMdEBpuEyqjoXi5G4eO5x4HtOeYGmbLt-DE-0H4lhXH1sWnwFLEpPLQQSuy2jVgrs-LgJzlBpbhvUg5xApH6UWIi025pqQ_vJh0bbLMJnKbuAmDlA==	f	t
+34	azure_cosmos_default	azure_cosmos	\N	\N	\N	\N	\N	gAAAAABgSo_lnlJ5rKBGx2N9Yv6eat05oqCre_1Xo3nHMe3P87khPUvejmZwD1QWyDG9T1K9BtwiGBVWDGLltuuIh9Wer3BYrmATk4ksir8J5ZNWNvWT2OWFrId1kPpWaq5EzsdFVq3M0P3UAQtCMdxd6lUychvnYr5aqV0vSSi_EtiQfGVEXtw=	f	t
+35	azure_container_instances_default	azure_container_instances	\N	\N	\N	\N	\N	gAAAAABgSo_lSNrvpN2EweQ9lcFWFjHC40DIwA44EKuW4-dPo4bisomoZtxh4ZwczsjLxbbJzmok-4KDCjt55SLp_DEuhQIb9G2_V_2mwuh_4ditsa-1-Nq5jdVhXTTtd4amwkvromni69DG86knkY3WDQ_EVxgKwWNBvkOQLPiAQhKF5M6y5Lo=	f	t
+36	cassandra_default	cassandra	cassandra	\N	\N	\N	9042	\N	f	f
+37	dingding_default	http		\N	\N	\N	\N	\N	f	f
+38	opsgenie_default	http		\N	\N	\N	\N	\N	f	f
+\.
+
+
+--
+-- Name: connection_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.connection_id_seq', 38, true);
+
+
+--
+-- Data for Name: dag; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.dag (dag_id, is_paused, is_subdag, is_active, last_scheduler_run, last_pickled, last_expired, scheduler_lock, pickle_id, fileloc, owners, description, default_view, schedule_interval, root_dag_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: dag_pickle; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.dag_pickle (id, pickle, created_dttm, pickle_hash) FROM stdin;
+\.
+
+
+--
+-- Name: dag_pickle_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.dag_pickle_id_seq', 1, false);
+
+
+--
+-- Data for Name: dag_run; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.dag_run (id, dag_id, execution_date, state, run_id, external_trigger, conf, end_date, start_date) FROM stdin;
+\.
+
+
+--
+-- Name: dag_run_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.dag_run_id_seq', 1, false);
+
+
+--
+-- Data for Name: dag_tag; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.dag_tag (name, dag_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: import_error; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.import_error (id, "timestamp", filename, stacktrace) FROM stdin;
+\.
+
+
+--
+-- Name: import_error_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.import_error_id_seq', 1, false);
+
+
+--
+-- Data for Name: job; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.job (id, dag_id, state, job_type, start_date, end_date, latest_heartbeat, executor_class, hostname, unixname) FROM stdin;
+1	\N	running	SchedulerJob	2021-03-11 21:47:20.668704+00	\N	2021-03-11 21:48:14.975046+00	NoneType	7305ec5091ef	airflow
+\.
+
+
+--
+-- Name: job_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.job_id_seq', 1, true);
+
+
+--
+-- Data for Name: known_event; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.known_event (id, label, start_date, end_date, user_id, known_event_type_id, description) FROM stdin;
+\.
+
+
+--
+-- Name: known_event_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.known_event_id_seq', 1, false);
+
+
+--
+-- Data for Name: known_event_type; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.known_event_type (id, know_event_type) FROM stdin;
+1	Holiday
+2	Outage
+3	Natural Disaster
+4	Marketing Campaign
+\.
+
+
+--
+-- Name: known_event_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.known_event_type_id_seq', 4, true);
+
+
+--
+-- Data for Name: kube_resource_version; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.kube_resource_version (one_row_id, resource_version) FROM stdin;
+t	
+\.
+
+
+--
+-- Data for Name: kube_worker_uuid; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.kube_worker_uuid (one_row_id, worker_uuid) FROM stdin;
+t	
+\.
+
+
+--
+-- Data for Name: log; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.log (id, dttm, dag_id, task_id, event, execution_date, owner, extra) FROM stdin;
+1	2021-03-11 21:47:20.646786+00	\N	\N	cli_scheduler	\N	airflow	{"host_name": "7305ec5091ef", "full_command": "['/usr/local/bin/airflow', 'scheduler']"}
+2	2021-03-11 21:47:20.783581+00	\N	\N	cli_webserver	\N	airflow	{"host_name": "7305ec5091ef", "full_command": "['/usr/local/bin/airflow', 'webserver']"}
+\.
+
+
+--
+-- Name: log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.log_id_seq', 2, true);
+
+
+--
+-- Data for Name: serialized_dag; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.serialized_dag (dag_id, fileloc, fileloc_hash, data, last_updated) FROM stdin;
+\.
+
+
+--
+-- Data for Name: sla_miss; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.sla_miss (task_id, dag_id, execution_date, email_sent, "timestamp", description, notification_sent) FROM stdin;
+\.
+
+
+--
+-- Data for Name: slot_pool; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.slot_pool (id, pool, slots, description) FROM stdin;
+1	default_pool	128	Default pool
+\.
+
+
+--
+-- Name: slot_pool_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.slot_pool_id_seq', 1, true);
+
+
+--
+-- Data for Name: task_fail; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.task_fail (id, task_id, dag_id, execution_date, start_date, end_date, duration) FROM stdin;
+\.
+
+
+--
+-- Name: task_fail_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.task_fail_id_seq', 1, false);
+
+
+--
+-- Data for Name: task_instance; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.task_instance (task_id, dag_id, execution_date, start_date, end_date, duration, state, try_number, hostname, unixname, job_id, pool, queue, priority_weight, operator, queued_dttm, pid, max_tries, executor_config) FROM stdin;
+\.
+
+
+--
+-- Data for Name: task_reschedule; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.task_reschedule (id, task_id, dag_id, execution_date, try_number, start_date, end_date, duration, reschedule_date) FROM stdin;
+\.
+
+
+--
+-- Name: task_reschedule_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.task_reschedule_id_seq', 1, false);
+
+
+--
+-- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.user_id_seq', 1, false);
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.users (id, username, email, password, superuser) FROM stdin;
+\.
+
+
+--
+-- Data for Name: variable; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.variable (id, key, val, is_encrypted) FROM stdin;
+\.
+
+
+--
+-- Name: variable_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.variable_id_seq', 1, false);
+
+
+--
+-- Data for Name: xcom; Type: TABLE DATA; Schema: public; Owner: airflow
+--
+
+COPY public.xcom (id, key, value, "timestamp", execution_date, task_id, dag_id) FROM stdin;
+\.
+
+
+--
+-- Name: xcom_id_seq; Type: SEQUENCE SET; Schema: public; Owner: airflow
+--
+
+SELECT pg_catalog.setval('public.xcom_id_seq', 1, false);
+
+
+--
+-- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.alembic_version
+    ADD CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num);
+
+
+--
+-- Name: chart chart_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.chart
+    ADD CONSTRAINT chart_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: connection connection_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.connection
+    ADD CONSTRAINT connection_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: dag_pickle dag_pickle_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag_pickle
+    ADD CONSTRAINT dag_pickle_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: dag dag_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag
+    ADD CONSTRAINT dag_pkey PRIMARY KEY (dag_id);
+
+
+--
+-- Name: dag_run dag_run_dag_id_execution_date_key; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag_run
+    ADD CONSTRAINT dag_run_dag_id_execution_date_key UNIQUE (dag_id, execution_date);
+
+
+--
+-- Name: dag_run dag_run_dag_id_run_id_key; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag_run
+    ADD CONSTRAINT dag_run_dag_id_run_id_key UNIQUE (dag_id, run_id);
+
+
+--
+-- Name: dag_run dag_run_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag_run
+    ADD CONSTRAINT dag_run_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: dag_tag dag_tag_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag_tag
+    ADD CONSTRAINT dag_tag_pkey PRIMARY KEY (name, dag_id);
+
+
+--
+-- Name: import_error import_error_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.import_error
+    ADD CONSTRAINT import_error_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: job job_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.job
+    ADD CONSTRAINT job_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: known_event known_event_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.known_event
+    ADD CONSTRAINT known_event_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: known_event_type known_event_type_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.known_event_type
+    ADD CONSTRAINT known_event_type_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: kube_resource_version kube_resource_version_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.kube_resource_version
+    ADD CONSTRAINT kube_resource_version_pkey PRIMARY KEY (one_row_id);
+
+
+--
+-- Name: kube_worker_uuid kube_worker_uuid_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.kube_worker_uuid
+    ADD CONSTRAINT kube_worker_uuid_pkey PRIMARY KEY (one_row_id);
+
+
+--
+-- Name: log log_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.log
+    ADD CONSTRAINT log_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: serialized_dag serialized_dag_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.serialized_dag
+    ADD CONSTRAINT serialized_dag_pkey PRIMARY KEY (dag_id);
+
+
+--
+-- Name: sla_miss sla_miss_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.sla_miss
+    ADD CONSTRAINT sla_miss_pkey PRIMARY KEY (task_id, dag_id, execution_date);
+
+
+--
+-- Name: slot_pool slot_pool_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.slot_pool
+    ADD CONSTRAINT slot_pool_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: slot_pool slot_pool_pool_key; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.slot_pool
+    ADD CONSTRAINT slot_pool_pool_key UNIQUE (pool);
+
+
+--
+-- Name: task_fail task_fail_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.task_fail
+    ADD CONSTRAINT task_fail_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: task_instance task_instance_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.task_instance
+    ADD CONSTRAINT task_instance_pkey PRIMARY KEY (task_id, dag_id, execution_date);
+
+
+--
+-- Name: task_reschedule task_reschedule_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.task_reschedule
+    ADD CONSTRAINT task_reschedule_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users user_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users user_username_key; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT user_username_key UNIQUE (username);
+
+
+--
+-- Name: variable variable_key_key; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.variable
+    ADD CONSTRAINT variable_key_key UNIQUE (key);
+
+
+--
+-- Name: variable variable_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.variable
+    ADD CONSTRAINT variable_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: xcom xcom_pkey; Type: CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.xcom
+    ADD CONSTRAINT xcom_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: dag_id_state; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX dag_id_state ON public.dag_run USING btree (dag_id, state);
+
+
+--
+-- Name: idx_fileloc_hash; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX idx_fileloc_hash ON public.serialized_dag USING btree (fileloc_hash);
+
+
+--
+-- Name: idx_job_state_heartbeat; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX idx_job_state_heartbeat ON public.job USING btree (state, latest_heartbeat);
+
+
+--
+-- Name: idx_log_dag; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX idx_log_dag ON public.log USING btree (dag_id);
+
+
+--
+-- Name: idx_root_dag_id; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX idx_root_dag_id ON public.dag USING btree (root_dag_id);
+
+
+--
+-- Name: idx_task_fail_dag_task_date; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX idx_task_fail_dag_task_date ON public.task_fail USING btree (dag_id, task_id, execution_date);
+
+
+--
+-- Name: idx_task_reschedule_dag_task_date; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX idx_task_reschedule_dag_task_date ON public.task_reschedule USING btree (dag_id, task_id, execution_date);
+
+
+--
+-- Name: idx_xcom_dag_task_date; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX idx_xcom_dag_task_date ON public.xcom USING btree (dag_id, task_id, execution_date);
+
+
+--
+-- Name: job_type_heart; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX job_type_heart ON public.job USING btree (job_type, latest_heartbeat);
+
+
+--
+-- Name: sm_dag; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX sm_dag ON public.sla_miss USING btree (dag_id);
+
+
+--
+-- Name: ti_dag_date; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX ti_dag_date ON public.task_instance USING btree (dag_id, execution_date);
+
+
+--
+-- Name: ti_dag_state; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX ti_dag_state ON public.task_instance USING btree (dag_id, state);
+
+
+--
+-- Name: ti_job_id; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX ti_job_id ON public.task_instance USING btree (job_id);
+
+
+--
+-- Name: ti_pool; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX ti_pool ON public.task_instance USING btree (pool, state, priority_weight);
+
+
+--
+-- Name: ti_state; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX ti_state ON public.task_instance USING btree (state);
+
+
+--
+-- Name: ti_state_lkp; Type: INDEX; Schema: public; Owner: airflow
+--
+
+CREATE INDEX ti_state_lkp ON public.task_instance USING btree (dag_id, task_id, execution_date, state);
+
+
+--
+-- Name: chart chart_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.chart
+    ADD CONSTRAINT chart_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: dag_tag dag_tag_dag_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.dag_tag
+    ADD CONSTRAINT dag_tag_dag_id_fkey FOREIGN KEY (dag_id) REFERENCES public.dag(dag_id);
+
+
+--
+-- Name: known_event known_event_known_event_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.known_event
+    ADD CONSTRAINT known_event_known_event_type_id_fkey FOREIGN KEY (known_event_type_id) REFERENCES public.known_event_type(id);
+
+
+--
+-- Name: known_event known_event_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.known_event
+    ADD CONSTRAINT known_event_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: task_reschedule task_reschedule_dag_task_date_fkey; Type: FK CONSTRAINT; Schema: public; Owner: airflow
+--
+
+ALTER TABLE ONLY public.task_reschedule
+    ADD CONSTRAINT task_reschedule_dag_task_date_fkey FOREIGN KEY (task_id, dag_id, execution_date) REFERENCES public.task_instance(task_id, dag_id, execution_date) ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
